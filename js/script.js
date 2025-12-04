@@ -5,20 +5,16 @@ const WEBHOOK_URL = "https://your-webhook-url-here.com"; // CHANGE THIS
 
 function login() {
   const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
 
-  if (email === "" || password === "") {
-    alert("Enter login details");
-    return;
-  }
+  // If empty, assign a default guest name
+  loggedInUser = email || "User";
 
-  loggedInUser = email;
-
-  document.getElementById("userEmail").innerText = email;
+  document.getElementById("userEmail").innerText = loggedInUser;
 
   document.getElementById("login-screen").classList.add("hidden");
   document.getElementById("dashboard").classList.remove("hidden");
 }
+
 
 function togglePunch() {
   isStarted = !isStarted;
