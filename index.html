@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Punch App</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Login Screen -->
+  <div id="login-screen" class="container">
+    <h2>Login</h2>
+    <input type="text" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <!-- Dashboard Screen -->
+  <div id="dashboard" class="container hidden">
+    <h2>Welcome, <span id="userEmail"></span></h2>
+
+    <div class="status-box">
+      <p>Status: <span id="status">Not Started</span></p>
+      <p>Time: <span id="time">--:--:--</span></p>
+    </div>
+
+    <button id="actionButton" onclick="togglePunch()">Start</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
