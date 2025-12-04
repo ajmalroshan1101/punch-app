@@ -2,7 +2,7 @@ let loggedInUser = null;
 let isStarted = false;
 
 // 🔥 Your Google Apps Script Webhook URL
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxZw3PRonHJzmH1ag9NG32wfWIIj0CjsvieCWak_aK2DP-pxswRYZphq8TS5n6JwcnxpA/exec";
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxCpQBKEwc9xW9oIxZyHAnn7kpj07qemCir7Cn0HoQedpMUXe0jNkk0zB8Bdpy87jSa_w/exec";
 
 function login() {
   const email = document.getElementById("email").value.trim();
@@ -40,12 +40,13 @@ function togglePunch() {
 function sendToWebhook(data) {
   fetch(WEBHOOK_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
+    headers: { "Content-Type": "text/plain" }, // Changed from application/json
+    body: JSON.stringify(data),
+    mode: "no-cors" // Add this line
   })
-  .then(async (res) => {
-    const txt = await res.text();
-    console.log("Response:", txt);
+  .then(() => {
+    console.log("Data sent successfully");
+    // Note: With no-cors, you won't get response data
   })
   .catch(err => console.error("Webhook error:", err));
 }
