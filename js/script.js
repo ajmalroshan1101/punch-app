@@ -24,24 +24,37 @@ function togglePunch() {
   const now = new Date();
   document.getElementById("time").innerText = now.toLocaleTimeString();
 
-  sendToWebhook({
+  const payload = {
     user: loggedInUser,
     status: status,
     timestamp: now.toISOString(),
     readableTime: now.toLocaleString()
-  });
+  };
+  
+  // Log to see what we're sending
+  console.log("=== Sending Payload ===");
+  console.log("User:", payload.user);
+  console.log("Status:", payload.status);
+  console.log("Timestamp:", payload.timestamp);
+  console.log("Readable Time:", payload.readableTime);
+  console.log("Full payload:", JSON.stringify(payload));
+
+  sendToWebhook(payload);
 }
 
 function sendToWebhook(data) {
-  console.log("Sending data:", data);
+  console.log("sendToWebhook called");
+  console.log("Data object:", data);
+  console.log("JSON string:", JSON.stringify(data));
   
-  // Method 1: Try sendBeacon first (best for Teams desktop)
+  // Method 1: Try sendBeacon first
   if (navigator.sendBeacon) {
     const blob = new Blob([JSON.stringify(data)], { type: 'text/plain' });
     const sent = navigator.sendBeacon(WEBHOOK_URL, blob);
     
     if (sent) {
       console.log("✅ Sent via sendBeacon");
+      console.log("Blob content:", JSON.stringify(data));
       return;
     }
   }
@@ -51,7 +64,11 @@ function sendToWebhook(data) {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", WEBHOOK_URL, true);
     xhr.setRequestHeader("Content-Type", "text/plain");
-    xhr.send(JSON.stringify(data));
+    
+    const jsonString = JSON.stringify(data);
+    console.log("XHR sending:", jsonString);
+    
+    xhr.send(jsonString);
     console.log("✅ Sent via XHR");
     return;
   } catch (xhrErr) {
