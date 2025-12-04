@@ -1,13 +1,10 @@
 let loggedInUser = null;
 let isStarted = false;
 
-// 🔥 Your Google Apps Script Webhook URL
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxCpQBKEwc9xW9oIxZyHAnn7kpj07qemCir7Cn0HoQedpMUXe0jNkk0zB8Bdpy87jSa_w/exec";
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxZw3PRonHJzmH1ag9NG32wfWIIj0CjsvieCWak_aK2DP-pxswRYZphq8TS5n6JwcnxpA/exec";
 
 function login() {
   const email = document.getElementById("email").value.trim();
-
-  // If empty, assign "User"
   loggedInUser = email || "User";
 
   document.getElementById("userEmail").innerText = loggedInUser;
@@ -25,10 +22,8 @@ function togglePunch() {
   document.getElementById("actionButton").innerText = buttonLabel;
 
   const now = new Date();
-
   document.getElementById("time").innerText = now.toLocaleTimeString();
 
-  // Send to Google Sheet
   sendToWebhook({
     user: loggedInUser,
     status: status,
@@ -38,15 +33,39 @@ function togglePunch() {
 }
 
 function sendToWebhook(data) {
+  console.log("Sending data:", data);
+  
+  // Method 1: Try sendBeacon first (best for Teams desktop)
+  if (navigator.sendBeacon) {
+    const blob = new Blob([JSON.stringify(data)], { type: 'text/plain' });
+    const sent = navigator.sendBeacon(WEBHOOK_URL, blob);
+    
+    if (sent) {
+      console.log("✅ Sent via sendBeacon");
+      return;
+    }
+  }
+  
+  // Method 2: Try XMLHttpRequest
+  try {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", WEBHOOK_URL, true);
+    xhr.setRequestHeader("Content-Type", "text/plain");
+    xhr.send(JSON.stringify(data));
+    console.log("✅ Sent via XHR");
+    return;
+  } catch (xhrErr) {
+    console.error("XHR failed:", xhrErr);
+  }
+  
+  // Method 3: Fallback to fetch
   fetch(WEBHOOK_URL, {
     method: "POST",
-    headers: { "Content-Type": "text/plain" }, // Changed from application/json
+    headers: { "Content-Type": "text/plain" },
     body: JSON.stringify(data),
-    mode: "no-cors" // Add this line
+    mode: "no-cors",
+    keepalive: true
   })
-  .then(() => {
-    console.log("Data sent successfully");
-    // Note: With no-cors, you won't get response data
-  })
-  .catch(err => console.error("Webhook error:", err));
+  .then(() => console.log("✅ Sent via fetch"))
+  .catch(err => console.error("❌ All methods failed:", err));
 }
