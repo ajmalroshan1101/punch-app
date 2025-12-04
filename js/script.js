@@ -42,47 +42,79 @@ function togglePunch() {
   sendToWebhook(payload);
 }
 
-function sendToWebhook(data) {
-  console.log("sendToWebhook called");
-  console.log("Data object:", data);
-  console.log("JSON string:", JSON.stringify(data));
+// function sendToWebhook(data) {
+//   console.log("sendToWebhook called");
+//   console.log("Data object:", data);
+//   console.log("JSON string:", JSON.stringify(data));
   
-  // Method 1: Try sendBeacon first
-  if (navigator.sendBeacon) {
-    const blob = new Blob([JSON.stringify(data)], { type: 'text/plain' });
-    const sent = navigator.sendBeacon(WEBHOOK_URL, blob);
+//   // Method 1: Try sendBeacon first
+//   if (navigator.sendBeacon) {
+//     const blob = new Blob([JSON.stringify(data)], { type: 'text/plain' });
+//     const sent = navigator.sendBeacon(WEBHOOK_URL, blob);
     
-    if (sent) {
-      console.log("✅ Sent via sendBeacon");
-      console.log("Blob content:", JSON.stringify(data));
-      return;
-    }
-  }
+//     if (sent) {
+//       console.log("✅ Sent via sendBeacon");
+//       console.log("Blob content:", JSON.stringify(data));
+//       return;
+//     }
+//   }
   
-  // Method 2: Try XMLHttpRequest
+//   // Method 2: Try XMLHttpRequest
+//   try {
+//     const xhr = new XMLHttpRequest();
+//     xhr.open("POST", WEBHOOK_URL, true);
+//     xhr.setRequestHeader("Content-Type", "text/plain");
+    
+//     const jsonString = JSON.stringify(data);
+//     console.log("XHR sending:", jsonString);
+    
+//     xhr.send(jsonString);
+//     console.log("✅ Sent via XHR");
+//     return;
+//   } catch (xhrErr) {
+//     console.error("XHR failed:", xhrErr);
+//   }
+  
+//   // Method 3: Fallback to fetch
+//   fetch(WEBHOOK_URL, {
+//     method: "POST",
+//     headers: { "Content-Type": "text/plain" },
+//     body: JSON.stringify(data),
+//     mode: "no-cors",
+//     keepalive: true
+//   })
+//   .then(() => console.log("✅ Sent via fetch"))
+//   .catch(err => console.error("❌ All methods failed:", err));
+// }
+function sendToWebhook(data) {
+  console.log("=== sendToWebhook Debug ===");
+  console.log("Full data object:", data);
+  console.log("Data.user:", data.user);
+  console.log("Data.status:", data.status);
+  console.log("Data.timestamp:", data.timestamp);
+  console.log("Data.readableTime:", data.readableTime);
+  
+  const jsonString = JSON.stringify(data);
+  console.log("JSON string to send:", jsonString);
+  
+  // ONLY USE XMLHttpRequest (most reliable for Teams)
   try {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", WEBHOOK_URL, true);
     xhr.setRequestHeader("Content-Type", "text/plain");
     
-    const jsonString = JSON.stringify(data);
-    console.log("XHR sending:", jsonString);
+    xhr.onload = function() {
+      console.log("✅ XHR Success - Status:", xhr.status);
+    };
     
+    xhr.onerror = function() {
+      console.error("❌ XHR Error");
+    };
+    
+    console.log("Sending via XHR:", jsonString);
     xhr.send(jsonString);
-    console.log("✅ Sent via XHR");
-    return;
-  } catch (xhrErr) {
-    console.error("XHR failed:", xhrErr);
+    
+  } catch (err) {
+    console.error("❌ XHR Exception:", err);
   }
-  
-  // Method 3: Fallback to fetch
-  fetch(WEBHOOK_URL, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify(data),
-    mode: "no-cors",
-    keepalive: true
-  })
-  .then(() => console.log("✅ Sent via fetch"))
-  .catch(err => console.error("❌ All methods failed:", err));
 }
