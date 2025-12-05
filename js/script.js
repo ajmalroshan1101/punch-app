@@ -2,7 +2,7 @@ let loggedInUser = null;
 let isStarted = false;
 
 // Your Google Apps Script Webhook URL
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxZw3PRonHJzmH1ag9NG32wfWIIj0CjsvieCWak_aK2DP-pxswRYZphq8TS5n6JwcnxpA/exec";
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxHbyCVGNqsdnkesunFweoT9fAnXej6DMiSQETU8wWxxsh7-RAHGUjdU6RBjwlFq-ZA1w/exec";
 
 function login() {
   const email = document.getElementById("email").value.trim();
