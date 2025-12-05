@@ -1,7 +1,6 @@
 let loggedInUser = null;
 let isStarted = false;
 
-// Your Google Apps Script Webhook URL
 const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxHbyCVGNqsdnkesunFweoT9fAnXej6DMiSQETU8wWxxsh7-RAHGUjdU6RBjwlFq-ZA1w/exec";
 
 function login() {
@@ -25,7 +24,6 @@ function togglePunch() {
   const now = new Date();
   document.getElementById("time").innerText = now.toLocaleTimeString();
 
-  // Send to Google Sheet
   sendToWebhook({
     user: loggedInUser,
     status: status,
@@ -35,47 +33,26 @@ function togglePunch() {
 }
 
 function sendToWebhook(data) {
-  // Create a clean data object to ensure all fields are present
-  const cleanData = {
-    user: String(data.user || "Unknown"),
-    status: String(data.status || "Unknown"),
-    timestamp: String(data.timestamp || new Date().toISOString()),
-    readableTime: String(data.readableTime || new Date().toLocaleString())
+  console.log("=== Sending Data ===", data);
+  
+  // Use Image beacon - works everywhere including Teams desktop
+  const params = new URLSearchParams({
+    user: data.user,
+    status: data.status,
+    timestamp: data.timestamp,
+    readableTime: data.readableTime
+  });
+  
+  const img = new Image();
+  img.src = WEBHOOK_URL + "?" + params.toString();
+  
+  img.onload = function() {
+    console.log("✅ Data sent successfully");
   };
   
-  console.log("=== Sending to Webhook ===");
-  console.log("User:", cleanData.user);
-  console.log("Status:", cleanData.status);
-  console.log("Timestamp:", cleanData.timestamp);
-  console.log("Readable Time:", cleanData.readableTime);
-  
-  const jsonString = JSON.stringify(cleanData);
-  console.log("JSON String:", jsonString);
-  
-  // Use XMLHttpRequest with proper encoding
-  const xhr = new XMLHttpRequest();
-  xhr.open("POST", WEBHOOK_URL, true);
-  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-  
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200 || xhr.status === 302) {
-        console.log("✅ Data sent successfully");
-        console.log("Response:", xhr.responseText);
-      } else if (xhr.status === 0) {
-        console.log("⚠️ Request sent (no-cors - cannot verify)");
-      } else {
-        console.error("❌ Request failed with status:", xhr.status);
-      }
-    }
+  img.onerror = function() {
+    console.log("⚠️ Request completed (may have succeeded despite error)");
   };
   
-  xhr.onerror = function() {
-    console.error("❌ Network error occurred");
-  };
-  
-  // Send as form-encoded data (more compatible with Apps Script)
-  const params = "data=" + encodeURIComponent(jsonString);
-  console.log("Sending params:", params);
-  xhr.send(params);
+  console.log("Request URL:", img.src);
 }
