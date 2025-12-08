@@ -2,7 +2,8 @@ let loggedInUser = null;
 let userName = null;
 let isStarted = false;
 
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxHbyCVGNqsdnkesunFweoT9fAnXej6DMiSQETU8wWxxsh7-RAHGUjdU6RBjwlFq-ZA1w/exec";
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyDNYxZDFb6KkaFOTr1-rEU5C6JPS0yyIaOApmRfj7yZ94R7vTahLLhSzQCqm0f4fZPgg/exec";
+
 
 // Auto-initialize when page loads
 async function initializeApp() {
