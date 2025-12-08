@@ -2,320 +2,136 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Teams Attendance App</title>
+  <title>Attendance</title>
 
-  <!-- Teams SDK -->
+  <!-- Microsoft Teams SDK -->
   <script src="https://statics.teams.cdn.office.net/sdk/v1.13.0/js/MicrosoftTeams.min.js"></script>
 
   <style>
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #f3f6fa;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
+      font-family: Segoe UI, Arial, sans-serif;
+      padding: 15px;
+      background: #f5f5f5;
     }
-
-    .container {
-      background: #ffffff;
-      margin-top: 40px;
-      width: 90%;
-      max-width: 900px;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-    }
-
     h2 {
-      color: #252423;
-      font-size: 20px;
-      margin-bottom: 8px;
+      margin-top: 0;
     }
-
-    h2 span {
-      color: #6264A7;
-      font-weight: 600;
+    button {
+      padding: 8px 16px;
+      margin-right: 10px;
+      cursor: pointer;
     }
-
-    .subtitle {
-      color: #5f5f5f;
-      margin-bottom: 20px;
-      font-size: 14px;
-    }
-
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
+      background: #fff;
     }
-
-    table thead {
-      background: #f0f2ff;
-    }
-
-    table th, table td {
-      padding: 10px 12px;
-      border: 1px solid #e1e4ea;
-      font-size: 14px;
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
       text-align: left;
     }
-
-    table th {
-      font-weight: 600;
-      color: #3a3a3a;
+    th {
+      background: #eee;
     }
-
-    table tbody tr.me-row {
-      background: #fffbdd;
-    }
-
-    table tbody tr.me-row td {
-      font-weight: 600;
-    }
-
-    .btn-wrapper {
-      text-align: center;
-      margin-top: 10px;
-    }
-
-    button {
-      padding: 12px 30px;
-      border-radius: 999px;
-      border: none;
-      font-size: 16px;
-      font-weight: 600;
-      color: #ffffff;
-      background: #6264A7;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s, box-shadow 0.1s;
-    }
-
-    button:hover {
-      background: #4b4d96;
-    }
-
-    button:active {
-      transform: translateY(1px);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    }
-
-    button:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .status-box {
-      background: #eef3ff;
-      padding: 15px;
-      border-radius: 8px;
-      margin-top: 20px;
-      font-size: 14px;
-    }
-
-    .status-box p {
-      margin: 6px 0;
-      color: #252423;
-    }
-
-    .status-box span {
-      font-weight: 600;
-      color: #6264A7;
-    }
-
-    .top-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .top-row .right {
+    .present { color: green; font-weight: bold; }
+    .workover { color: red; font-weight: bold; }
+    .notpresent { color: #666; }
+    .info {
       font-size: 13px;
-      color: #666;
-      text-align: right;
-    }
-
-    .refresh-link {
-      font-size: 13px;
-      color: #6264A7;
-      cursor: pointer;
-      text-decoration: underline;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="top-row">
-      <div class="left">
-        <h2>Attendance Panel – <span id="userName">Loading...</span></h2>
-        <div class="subtitle">View today’s status of all employees and mark your own attendance.</div>
-      </div>
-      <div class="right">
-        <div id="userEmailDisplay">Email: --</div>
-        <div class="refresh-link" id="refreshLink">Refresh table</div>
-      </div>
-    </div>
+<h2>Employee Attendance</h2>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="employeesBody">
-        <!-- Filled by JS -->
-      </tbody>
-    </table>
+<div class="info">
+  Logged in as: <b id="userEmail">Detecting...</b>
+</div>
 
-    <div class="btn-wrapper">
-      <button id="actionButton" disabled>Start</button>
-    </div>
+<table>
+  <thead>
+    <tr>
+      <th>Email</th>
+      <th>Name</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="tableBody"></tbody>
+</table>
 
-    <div class="status-box">
-      <p>Status: <span id="statusText">Not started</span></p>
-      <p>Last Action Time: <span id="timeText">--:--:--</span></p>
-    </div>
-  </div>
+<button id="startBtn">Start</button>
+<button id="endBtn">End</button>
 
-  <script>
-    // Replace this with your deployed Apps Script Web App URL
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyDNYxZDFb6KkaFOTr1-rEU5C6JPS0yyIaOApmRfj7yZ94R7vTahLLhSzQCqm0f4fZPgg/exec";
+<script>
+  /* 🔧 CHANGE THESE */
+  const WRITE_URL = "https://script.google.com/macros/s/AKfycbyDNYxZDFb6KkaFOTr1-rEU5C6JPS0yyIaOApmRfj7yZ94R7vTahLLhSzQCqm0f4fZPgg/exec";
+  const READ_URL  = "PASTE_READ_WEBAPP_URL";
 
-    let loggedInUser = "unknown@user.com";
-    let userName = "Guest User";
-    let isStarted = false;
+  let user = { email: "", name: "" };
 
-    // ------------- Teams Init (works in desktop & web) -------------
-    function initApp() {
-      if (typeof microsoftTeams !== "undefined") {
-        microsoftTeams.initialize(() => {
-          console.log("Teams SDK Initialized");
+  function loadTable() {
+    fetch(READ_URL)
+      .then(r => r.json())
+      .then(data => {
+        const body = document.getElementById("tableBody");
+        body.innerHTML = "";
 
-          microsoftTeams.getContext((context) => {
-            console.log("Teams Context:", context);
-            loggedInUser = context.userPrincipalName || "unknown@user.com";
-            userName = context.userDisplayName || loggedInUser;
+        data.forEach(r => {
+          const tr = document.createElement("tr");
 
-            document.getElementById("userName").textContent = userName;
-            document.getElementById("userEmailDisplay").textContent = "Email: " + loggedInUser;
-
-            document.getElementById("actionButton").disabled = false;
-
-            // Load employees once we know current user
-            loadEmployees();
-          });
-        });
-      } else {
-        console.log("Not running inside Microsoft Teams – using fallback user.");
-        // Fallback for testing in browser
-        loggedInUser = "test.user@example.com";
-        userName = "Test User";
-
-        document.getElementById("userName").textContent = userName;
-        document.getElementById("userEmailDisplay").textContent = "Email: " + loggedInUser;
-        document.getElementById("actionButton").disabled = false;
-
-        loadEmployees();
-      }
-    }
-
-    // ------------------- Load Employee Table -------------------
-    function loadEmployees() {
-      const tbody = document.getElementById("employeesBody");
-      tbody.innerHTML = "<tr><td colspan='3'>Loading...</td></tr>";
-
-      fetch(WEBAPP_URL + "?action=listEmployees")
-        .then(r => r.json())
-        .then(res => {
-          tbody.innerHTML = "";
-
-          if (!res.success || !Array.isArray(res.employees) || res.employees.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='3'>No employees found.</td></tr>";
-            return;
+          if (r.email.toLowerCase() === user.email.toLowerCase()) {
+            tr.style.background = "#fff7cc";
           }
 
-          res.employees.forEach(emp => {
-            const tr = document.createElement("tr");
+          let cls = "";
+          if (r.status === "Present") cls = "present";
+          else if (r.status === "Work over") cls = "workover";
+          else cls = "notpresent";
 
-            if (emp.email && emp.email.toLowerCase() === loggedInUser.toLowerCase()) {
-              tr.classList.add("me-row");
-            }
-
-            const tdName = document.createElement("td");
-            tdName.textContent = emp.name || "";
-
-            const tdEmail = document.createElement("td");
-            tdEmail.textContent = emp.email || "";
-
-            const tdStatus = document.createElement("td");
-            tdStatus.textContent = emp.status || "Not present";
-
-            tr.appendChild(tdName);
-            tr.appendChild(tdEmail);
-            tr.appendChild(tdStatus);
-
-            tbody.appendChild(tr);
-          });
-        })
-        .catch(err => {
-          console.error("Error loading employees:", err);
-          tbody.innerHTML = "<tr><td colspan='3'>Error loading employees.</td></tr>";
+          tr.innerHTML = `
+            <td>${r.email}</td>
+            <td>${r.name}</td>
+            <td class="${cls}">${r.status}</td>
+          `;
+          body.appendChild(tr);
         });
-    }
-
-    document.getElementById("refreshLink").addEventListener("click", loadEmployees);
-
-    // --------------------- Button Action ----------------------
-    document.getElementById("actionButton").addEventListener("click", () => {
-      isStarted = !isStarted;
-
-      const status = isStarted ? "Started" : "Ended";
-      const btnLabel = isStarted ? "End" : "Start";
-
-      document.getElementById("actionButton").textContent = btnLabel;
-      document.getElementById("statusText").textContent = status;
-
-      const now = new Date();
-      const readableTime = now.toLocaleString();
-      document.getElementById("timeText").textContent = readableTime;
-
-      const payload = {
-        user: loggedInUser,
-        userName: userName,
-        status: status,
-        timestamp: now.toISOString(),
-        readableTime: readableTime
-      };
-
-      console.log("Sending payload:", payload);
-
-      fetch(WEBAPP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      })
-      .then(r => r.json().catch(() => r.text()))
-      .then(res => {
-        console.log("Response:", res);
-        // After logging & updating Sheet2, refresh table
-        loadEmployees();
-      })
-      .catch(err => {
-        console.error("Error sending data:", err);
       });
-    });
+  }
 
-    // Init app
-    initApp();
-  </script>
+  function send(action) {
+    fetch(WRITE_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        email: user.email,
+        name: user.name,
+        action: action
+      })
+    }).then(loadTable);
+  }
+
+  document.getElementById("startBtn").onclick = () => send("start");
+  document.getElementById("endBtn").onclick   = () => send("end");
+
+  /* ✅ Teams + Browser fallback */
+  if (window.microsoftTeams) {
+    microsoftTeams.initialize();
+    microsoftTeams.getContext(ctx => {
+      user.email = (ctx.userPrincipalName || "").toLowerCase();
+      user.name  = ctx.userDisplayName || "Teams User";
+      document.getElementById("userEmail").innerText = user.email;
+      loadTable();
+    });
+  } else {
+    // Browser testing
+    user.email = "a.roshan@msquare.pro";
+    user.name  = "Roshan";
+    document.getElementById("userEmail").innerText = user.email + " (test)";
+    loadTable();
+  }
+</script>
 </body>
 </html>
