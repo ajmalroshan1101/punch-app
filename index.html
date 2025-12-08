@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Punch App</title>
-  <script src="https://res.cdn.office.net/teams-js/2.19.0/js/MicrosoftTeams.min.js"></script>
+  <meta charset="UTF-8" />
+  <title>Teams Attendance App</title>
+
+  <!-- Teams SDK -->
+  <script src="https://statics.teams.cdn.office.net/sdk/v1.13.0/js/MicrosoftTeams.min.js"></script>
+
   <style>
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
@@ -95,125 +97,76 @@
     }
   </style>
 </head>
-<body>
 
-  <!-- Dashboard Screen -->
-  <div id="dashboard" class="container">
-    <h2>Welcome, <span id="userEmail">Loading...</span></h2>
+<body>
+  <div class="container">
+    <h2>Welcome, <span id="userName">Loading...</span></h2>
+
+    <button id="actionButton">Start</button>
 
     <div class="status-box">
-      <p>Status: <span id="status">Not Started</span></p>
-      <p>Time: <span id="time">--:--:--</span></p>
+      <p>Status: <span id="statusText">Not started</span></p>
+      <p>Last Action Time: <span id="timeText">--:--:--</span></p>
     </div>
-
-    <button id="actionButton" onclick="togglePunch()">Start</button>
   </div>
 
   <script>
-    let loggedInUser = null;
-    let userName = null;
+    let loggedInUser = "unknown@user.com";
+    let userName = "Guest User";
     let isStarted = false;
 
-    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyDNYxZDFb6KkaFOTr1-rEU5C6JPS0yyIaOApmRfj7yZ94R7vTahLLhSzQCqm0f4fZPgg/exec";
+    const WEBHOOK_URL = "YOUR_WEBAPP_URL"; // Replace with your Apps Script URL
 
-    // Auto-initialize when page loads
-    async function initializeApp() {
-      try {
-        console.log("🔄 Initializing Teams SDK...");
-        
-        // Initialize Microsoft Teams SDK
-        await microsoftTeams.app.initialize();
-        console.log("✅ Teams SDK initialized");
-        
-        // Notify Teams that app is ready
-        microsoftTeams.app.notifySuccess();
-        
-        // Get user context from Teams
-        const context = await microsoftTeams.app.getContext();
-        console.log("📋 Context received");
-        
-        // Extract user information
-        loggedInUser = context.user?.userPrincipalName || 
-                       context.user?.loginHint || 
-                       "unknown@user.com";
-        userName = context.user?.displayName || loggedInUser.split('@')[0];
-        
-        console.log("👤 User Info:", {
-          email: loggedInUser,
-          name: userName
-        });
-        
-        // Update UI with user name
-        document.getElementById("userEmail").innerText = userName;
-        
-      } catch (error) {
-        console.error("❌ Teams initialization error:", error);
-        
-        // Fallback if not in Teams or error occurred
-        loggedInUser = "test@company.com";
-        userName = "Test User";
-        document.getElementById("userEmail").innerText = `${userName} (Preview Mode)`;
-      }
-    }
+    // ---------------------- INIT TEAMS APP --------------------------
+    microsoftTeams.initialize(() => {
+      console.log("Teams SDK Initialized");
 
-    // Initialize on page load
-    window.addEventListener('DOMContentLoaded', initializeApp);
+      microsoftTeams.getContext((context) => {
+        console.log("Teams Context:", context);
 
-    function togglePunch() {
-      const button = document.getElementById("actionButton");
-      button.disabled = true; // Prevent double-clicks
-      
+        loggedInUser = context.userPrincipalName || "unknown@user.com";
+        userName = context.userDisplayName || loggedInUser;
+
+        document.getElementById("userName").textContent = userName;
+      });
+    });
+
+    // ---------------------- BUTTON ACTION ---------------------------
+    document.getElementById("actionButton").addEventListener("click", () => {
       isStarted = !isStarted;
 
-      const status = isStarted ? "Started" : "Ended";
-      const buttonLabel = isStarted ? "End" : "Start";
+      let status = isStarted ? "Started" : "Ended";
+      let btnLabel = isStarted ? "End" : "Start";
 
-      document.getElementById("status").innerText = status;
-      button.innerText = buttonLabel;
+      document.getElementById("actionButton").textContent = btnLabel;
+      document.getElementById("statusText").textContent = status;
 
       const now = new Date();
-      document.getElementById("time").innerText = now.toLocaleTimeString();
+      const readableTime = now.toLocaleString();
 
-      // Send data to Google Sheet
-      sendToWebhook({
+      document.getElementById("timeText").textContent = readableTime;
+
+      // ---------------------- SEND DATA -----------------------------
+      const data = {
         user: loggedInUser,
         userName: userName,
         status: status,
         timestamp: now.toISOString(),
-        readableTime: now.toLocaleString()
-      });
+        readableTime: readableTime
+      };
 
-      // Re-enable button after 2 seconds
-      setTimeout(() => {
-        button.disabled = false;
-      }, 2000);
-    }
-
-    function sendToWebhook(data) {
       console.log("=== Sending Data ===", data);
-      
-      // Use Image beacon method (works in Teams desktop)
-      const params = new URLSearchParams({
-        user: data.user,
-        userName: data.userName,
-        status: data.status,
-        timestamp: data.timestamp,
-        readableTime: data.readableTime
-      });
-      
-      const img = new Image();
-      img.src = WEBHOOK_URL + "?" + params.toString();
-      
-      img.onload = function() {
-        console.log("✅ Data sent successfully");
-      };
-      
-      img.onerror = function() {
-        console.log("⚠️ Request completed (may have succeeded)");
-      };
-      
-      console.log("Request URL:", img.src);
-    }
+
+      fetch(WEBHOOK_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then(r => r.text())
+      .then(res => console.log("Response:", res))
+      .catch(err => console.error("Error:", err));
+    });
   </script>
 </body>
 </html>
