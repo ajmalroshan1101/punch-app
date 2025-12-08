@@ -4,13 +4,100 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Punch App</title>
-  <link rel="stylesheet" href="css/style.css">
-  <!-- Add Microsoft Teams SDK -->
-  <script src="https://res.cdn.office.net/teams-js/2.0.0/js/MicrosoftTeams.min.js"></script>
+  <script src="https://res.cdn.office.net/teams-js/2.19.0/js/MicrosoftTeams.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f3f6fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      width: 350px;
+      padding: 25px;
+      background: #ffffff;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    h2 {
+      color: #252423;
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    h2 span {
+      color: #6264A7;
+      font-weight: 600;
+    }
+
+    input {
+      width: 90%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      width: 95%;
+      padding: 12px;
+      margin-top: 20px;
+      background: #6264A7;
+      color: #fff;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      background: #464775;
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .status-box {
+      background: #eef3ff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    .status-box p {
+      margin: 8px 0;
+      color: #252423;
+      font-size: 15px;
+    }
+
+    .status-box span {
+      font-weight: 600;
+      color: #6264A7;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Dashboard Screen (no login needed) -->
+  <!-- Dashboard Screen -->
   <div id="dashboard" class="container">
     <h2>Welcome, <span id="userEmail">Loading...</span></h2>
 
@@ -22,6 +109,111 @@
     <button id="actionButton" onclick="togglePunch()">Start</button>
   </div>
 
-  <script src="js/script.js"></script>
+  <script>
+    let loggedInUser = null;
+    let userName = null;
+    let isStarted = false;
+
+    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwGiKxBW-fykeGSMzpUrLlabI1rW6-vhVvC8lN4e8VpXj3bvWwg2U22bHQmZgVwrfkx9w/exec";
+
+    // Auto-initialize when page loads
+    async function initializeApp() {
+      try {
+        console.log("🔄 Initializing Teams SDK...");
+        
+        // Initialize Microsoft Teams SDK
+        await microsoftTeams.app.initialize();
+        console.log("✅ Teams SDK initialized");
+        
+        // Notify Teams that app is ready
+        microsoftTeams.app.notifySuccess();
+        
+        // Get user context from Teams
+        const context = await microsoftTeams.app.getContext();
+        console.log("📋 Context received");
+        
+        // Extract user information
+        loggedInUser = context.user?.userPrincipalName || 
+                       context.user?.loginHint || 
+                       "unknown@user.com";
+        userName = context.user?.displayName || loggedInUser.split('@')[0];
+        
+        console.log("👤 User Info:", {
+          email: loggedInUser,
+          name: userName
+        });
+        
+        // Update UI with user name
+        document.getElementById("userEmail").innerText = userName;
+        
+      } catch (error) {
+        console.error("❌ Teams initialization error:", error);
+        
+        // Fallback if not in Teams or error occurred
+        loggedInUser = "test@company.com";
+        userName = "Test User";
+        document.getElementById("userEmail").innerText = `${userName} (Preview Mode)`;
+      }
+    }
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', initializeApp);
+
+    function togglePunch() {
+      const button = document.getElementById("actionButton");
+      button.disabled = true; // Prevent double-clicks
+      
+      isStarted = !isStarted;
+
+      const status = isStarted ? "Started" : "Ended";
+      const buttonLabel = isStarted ? "End" : "Start";
+
+      document.getElementById("status").innerText = status;
+      button.innerText = buttonLabel;
+
+      const now = new Date();
+      document.getElementById("time").innerText = now.toLocaleTimeString();
+
+      // Send data to Google Sheet
+      sendToWebhook({
+        user: loggedInUser,
+        userName: userName,
+        status: status,
+        timestamp: now.toISOString(),
+        readableTime: now.toLocaleString()
+      });
+
+      // Re-enable button after 2 seconds
+      setTimeout(() => {
+        button.disabled = false;
+      }, 2000);
+    }
+
+    function sendToWebhook(data) {
+      console.log("=== Sending Data ===", data);
+      
+      // Use Image beacon method (works in Teams desktop)
+      const params = new URLSearchParams({
+        user: data.user,
+        userName: data.userName,
+        status: data.status,
+        timestamp: data.timestamp,
+        readableTime: data.readableTime
+      });
+      
+      const img = new Image();
+      img.src = WEBHOOK_URL + "?" + params.toString();
+      
+      img.onload = function() {
+        console.log("✅ Data sent successfully");
+      };
+      
+      img.onerror = function() {
+        console.log("⚠️ Request completed (may have succeeded)");
+      };
+      
+      console.log("Request URL:", img.src);
+    }
+  </script>
 </body>
 </html>

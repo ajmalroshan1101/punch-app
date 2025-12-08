@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance Dashboard</title>
+  <script src="https://res.cdn.office.net/teams-js/2.19.0/js/MicrosoftTeams.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      overflow: hidden;
+      background: #f3f6fa;
+    }
+    
+    iframe {
+      width: 100%;
+      height: 100vh;
+      border: none;
+      display: block;
+    }
+    
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.3s ease;
+    }
+    
+    .loading-content {
+      text-align: center;
+      color: white;
+    }
+    
+    .loading-spinner {
+      border: 6px solid rgba(255,255,255,0.3);
+      border-top: 6px solid white;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .loading-subtext {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading" class="loading-overlay">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Loading Attendance Dashboard...</p>
+      <p class="loading-subtext">Please wait a moment</p>
+    </div>
+  </div>
+  
+  <!-- 
+    IMPORTANT: Replace YOUR_WEB_APP_URL_HERE with your Apps Script web app URL
+    Get it from: Apps Script > Deploy > Manage deployments > Copy Web App URL
+    Example: https://script.google.com/macros/s/AKfycby.../exec
+  -->
+  <iframe 
+    id="attendanceFrame"
+    src="https://script.google.com/macros/s/AKfycbzbVuoVZax6ODa1NLA7buuRcnv_Z6fBwKXUCA7OlE0NC7k4NBWS7RMysWT9KdnjlWGPNw/exec"
+    allow="clipboard-read; clipboard-write"
+    sandbox="allow-scripts allow-same-origin allow-forms"
+    onload="hideLoading()">
+  </iframe>
+
+  <script>
+    // Initialize Teams SDK
+    async function initializeTeams() {
+      try {
+        console.log("🔄 Initializing Teams SDK for Attendance page...");
+        await microsoftTeams.app.initialize();
+        microsoftTeams.app.notifySuccess();
+        console.log("✅ Teams SDK initialized");
+      } catch (error) {
+        console.error("❌ Teams initialization error:", error);
+        // Continue loading even if Teams init fails
+      }
+    }
+
+    function hideLoading() {
+      console.log("✅ Attendance dashboard loaded");
+      const loadingOverlay = document.getElementById('loading');
+      loadingOverlay.style.opacity = '0';
+      setTimeout(() => {
+        loadingOverlay.style.display = 'none';
+      }, 300);
+    }
+
+    // Fallback: Hide loading after 5 seconds even if iframe doesn't load
+    setTimeout(() => {
+      const loadingOverlay = document.getElementById('loading');
+      if (loadingOverlay.style.display !== 'none') {
+        console.warn("⚠️ Loading took too long, hiding overlay");
+        hideLoading();
+      }
+    }, 5000);
+
+    // Initialize when page loads
+    window.addEventListener('DOMContentLoaded', initializeTeams);
+  </script>
+</body>
+</html>
