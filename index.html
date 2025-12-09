@@ -1,137 +1,461 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Attendance</title>
-
-  <!-- Microsoft Teams SDK -->
-  <script src="https://statics.teams.cdn.office.net/sdk/v1.13.0/js/MicrosoftTeams.min.js"></script>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Punch App</title>
+  <script src="https://res.cdn.office.net/teams-js/2.19.0/js/MicrosoftTeams.min.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Segoe UI, Arial, sans-serif;
-      padding: 15px;
-      background: #f5f5f5;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f3f6fa;
+      margin: 0;
+      padding: 20px;
     }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 25px;
+      background: #ffffff;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      border-radius: 10px;
+    }
+
     h2 {
-      margin-top: 0;
+      color: #252423;
+      font-size: 22px;
+      margin-bottom: 20px;
+      text-align: center;
     }
+
+    h2 span {
+      color: #6264A7;
+      font-weight: 600;
+    }
+
+    .status-box {
+      background: #eef3ff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .status-box p {
+      margin: 8px 0;
+      color: #252423;
+      font-size: 15px;
+    }
+
+    .status-box span {
+      font-weight: 600;
+      color: #6264A7;
+    }
+
     button {
-      padding: 8px 16px;
-      margin-right: 10px;
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 20px;
+      background: #6264A7;
+      color: #fff;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
     }
+
+    button:hover {
+      background: #464775;
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 15px;
-      background: #fff;
+      background: white;
     }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 6px;
-      text-align: left;
-    }
+
     th {
-      background: #eee;
+      background: #6264A7;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 14px;
     }
-    .present { color: green; font-weight: bold; }
-    .workover { color: red; font-weight: bold; }
-    .notpresent { color: #666; }
-    .info {
-      font-size: 13px;
-      margin-bottom: 10px;
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #e1e1e1;
+      font-size: 14px;
+      color: #252423;
+    }
+
+    tr:hover {
+      background: #f9f9f9;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-present {
+      background: #e6f7e6;
+      color: #0d7a0d;
+    }
+
+    .status-work-over {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-not-present {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #6264A7;
+      font-style: italic;
+    }
+
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    h3 {
+      color: #252423;
+      font-size: 18px;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #6264A7;
+      padding-bottom: 8px;
     }
   </style>
 </head>
-
 <body>
-<h2>Employee Attendance</h2>
 
-<div class="info">
-  Logged in as: <b id="userEmail">Detecting...</b>
-</div>
+  <div class="container">
+    <h2>Welcome, <span id="userEmail">Loading...</span></h2>
 
-<table>
-  <thead>
-    <tr>
-      <th>Email</th>
-      <th>Name</th>
-      <th>Status</th>
-    </tr>
-  </thead>
-  <tbody id="tableBody"></tbody>
-</table>
+    <div class="status-box">
+      <p>Status: <span id="status">Not Started</span></p>
+      <p>Time: <span id="time">--:--:--</span></p>
+    </div>
 
-<button id="startBtn">Start</button>
-<button id="endBtn">End</button>
+    <button id="actionButton" onclick="togglePunch()">Start</button>
 
-<script>
-  /* 🔧 CHANGE THESE */
-  const WRITE_URL = "https://script.google.com/macros/s/AKfycbyDNYxZDFb6KkaFOTr1-rEU5C6JPS0yyIaOApmRfj7yZ94R7vTahLLhSzQCqm0f4fZPgg/exec";
-  const READ_URL  = "PASTE_READ_WEBAPP_URL";
+    <div id="errorMessage" class="error" style="display: none;"></div>
 
-  let user = { email: "", name: "" };
+    <h3>Employee Attendance Status</h3>
+    
+    <div class="table-container">
+      <table id="employeeTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="employeeTableBody">
+          <tr>
+            <td colspan="3" class="loading">Loading employee data...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-  function loadTable() {
-    fetch(READ_URL)
-      .then(r => r.json())
-      .then(data => {
-        const body = document.getElementById("tableBody");
-        body.innerHTML = "";
+  <script>
+    let loggedInUser = null;
+    let userName = null;
+    let isStarted = false;
 
-        data.forEach(r => {
-          const tr = document.createElement("tr");
+    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyDNYxZDFb6KkaFOTr1-rEU5C6JPS0yyIaOApmRfj7yZ94R7vTahLLhSzQCqm0f4fZPgg/exec";
 
-          if (r.email.toLowerCase() === user.email.toLowerCase()) {
-            tr.style.background = "#fff7cc";
-          }
-
-          let cls = "";
-          if (r.status === "Present") cls = "present";
-          else if (r.status === "Work over") cls = "workover";
-          else cls = "notpresent";
-
-          tr.innerHTML = `
-            <td>${r.email}</td>
-            <td>${r.name}</td>
-            <td class="${cls}">${r.status}</td>
-          `;
-          body.appendChild(tr);
+    // Auto-initialize when page loads
+    async function initializeApp() {
+      try {
+        console.log("📄 Initializing Teams SDK...");
+        
+        await microsoftTeams.app.initialize();
+        console.log("✅ Teams SDK initialized");
+        
+        microsoftTeams.app.notifySuccess();
+        
+        const context = await microsoftTeams.app.getContext();
+        console.log("📋 Context received:", context);
+        
+        loggedInUser = context.user?.userPrincipalName || 
+                       context.user?.loginHint || 
+                       "unknown@user.com";
+        userName = context.user?.displayName || loggedInUser.split('@')[0];
+        
+        console.log("👤 User Info:", {
+          email: loggedInUser,
+          name: userName
         });
+        
+        document.getElementById("userEmail").innerText = userName;
+        
+        // Load initial employee data
+        loadEmployeeData();
+        
+      } catch (error) {
+        console.error("❌ Teams initialization error:", error);
+        
+        loggedInUser = "test@company.com";
+        userName = "Test User";
+        document.getElementById("userEmail").innerText = `${userName} (Preview Mode)`;
+        
+        // Load initial employee data even in preview mode
+        loadEmployeeData();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', initializeApp);
+
+    function togglePunch() {
+      const button = document.getElementById("actionButton");
+      button.disabled = true;
+      
+      isStarted = !isStarted;
+
+      const status = isStarted ? "Started" : "Ended";
+      const buttonLabel = isStarted ? "End" : "Start";
+
+      document.getElementById("status").innerText = status;
+      button.innerText = buttonLabel;
+
+      const now = new Date();
+      document.getElementById("time").innerText = now.toLocaleTimeString();
+
+      const data = {
+        user: loggedInUser,
+        userName: userName,
+        status: status,
+        timestamp: now.toISOString(),
+        readableTime: now.toLocaleString()
+      };
+
+      console.log("=== Sending Data ===", data);
+      
+      // Fetch employee data when button is clicked
+      fetch(WEBHOOK_URL + '?action=getData')
+        .then(r => r.json())
+        .then(data => {
+          console.log("📊 Button Click - Employee Data:", data.employees);
+          if (data.employees) {
+            updateEmployeeTable(data.employees);
+          }
+        })
+        .catch(error => {
+          console.error("❌ Error fetching employee data on click:", error);
+        });
+      
+      sendToWebhook(data);
+
+      setTimeout(() => {
+        button.disabled = false;
+      }, 2000);
+    }
+
+    function sendToWebhook(data) {
+      // Use GET request with query parameters (works better with Google Apps Script)
+      const params = new URLSearchParams({
+        user: data.user,
+        userName: data.userName,
+        status: data.status,
+        timestamp: data.timestamp,
+        readableTime: data.readableTime
       });
-  }
-
-  function send(action) {
-    fetch(WRITE_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        email: user.email,
-        name: user.name,
-        action: action
+      
+      const url = WEBHOOK_URL + "?" + params.toString();
+      console.log("📤 GET Request URL:", url);
+      
+      // Method 1: Direct fetch (for logging)
+      fetch(url, {
+        method: 'GET',
+        redirect: 'follow'
       })
-    }).then(loadTable);
-  }
+        .then(response => {
+          console.log("📥 Response Status:", response.status);
+          console.log("📥 Response Headers:", response.headers);
+          return response.text();
+        })
+        .then(text => {
+          console.log("📥 Raw Response Text:", text);
+          try {
+            const responseData = JSON.parse(text);
+            console.log("✅ Parsed Response JSON:", responseData);
+            
+            if (responseData.success) {
+              if (responseData.employees) {
+                updateEmployeeTable(responseData.employees);
+              }
+              showSuccess("Attendance recorded successfully!");
+            } else {
+              showError(responseData.error || "Failed to record attendance");
+            }
+          } catch (e) {
+            console.error("❌ JSON Parse Error:", e);
+            console.log("Response was not valid JSON");
+          }
+        })
+        .catch(error => {
+          console.error("❌ Fetch error:", error);
+          showError("Network error. Please check console.");
+        });
 
-  document.getElementById("startBtn").onclick = () => send("start");
-  document.getElementById("endBtn").onclick   = () => send("end");
+      // Method 2: POST request (also try this)
+      console.log("📤 Also sending POST request...");
+      fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        redirect: 'follow'
+      })
+        .then(response => response.text())
+        .then(text => {
+          console.log("📥 POST Raw Response:", text);
+          try {
+            const responseData = JSON.parse(text);
+            console.log("✅ POST Parsed Response:", responseData);
+          } catch (e) {
+            console.log("POST response was not valid JSON");
+          }
+        })
+        .catch(error => {
+          console.error("❌ POST error:", error);
+        });
+    }
 
-  /* ✅ Teams + Browser fallback */
-  if (window.microsoftTeams) {
-    microsoftTeams.initialize();
-    microsoftTeams.getContext(ctx => {
-      user.email = (ctx.userPrincipalName || "").toLowerCase();
-      user.name  = ctx.userDisplayName || "Teams User";
-      document.getElementById("userEmail").innerText = user.email;
-      loadTable();
-    });
-  } else {
-    // Browser testing
-    user.email = "a.roshan@msquare.pro";
-    user.name  = "Roshan";
-    document.getElementById("userEmail").innerText = user.email + " (test)";
-    loadTable();
-  }
-</script>
+    function loadEmployeeData() {
+      console.log("📊 Loading employee data...");
+      
+      // Make a request to get initial employee data
+      const params = new URLSearchParams({
+        user: loggedInUser || "system",
+        userName: userName || "System",
+        status: "Query",
+        timestamp: new Date().toISOString(),
+        readableTime: new Date().toLocaleString()
+      });
+      
+      const url = WEBHOOK_URL + "?" + params.toString();
+      
+      fetch(url)
+        .then(response => response.text())
+        .then(text => {
+          console.log("📊 Initial Load Raw Response:", text);
+          try {
+            const responseData = JSON.parse(text);
+            console.log("✅ Initial Load Parsed:", responseData);
+            if (responseData.employees) {
+              updateEmployeeTable(responseData.employees);
+            } else {
+              console.warn("⚠️ No employees data in response");
+            }
+          } catch (e) {
+            console.error("❌ Parse error:", e);
+            document.getElementById("employeeTableBody").innerHTML = 
+              '<tr><td colspan="3" class="error">Failed to parse employee data</td></tr>';
+          }
+        })
+        .catch(error => {
+          console.error("❌ Error loading initial data:", error);
+          document.getElementById("employeeTableBody").innerHTML = 
+            '<tr><td colspan="3" class="error">Failed to load employee data</td></tr>';
+        });
+    }
+
+    function updateEmployeeTable(employees) {
+      const tbody = document.getElementById("employeeTableBody");
+      
+      console.log("🔄 Updating table with employees:", employees);
+      
+      if (!employees || employees.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="loading">No employee data found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      
+      employees.forEach(emp => {
+        const row = document.createElement('tr');
+        
+        const statusClass = 
+          emp.Status === "Present" ? "status-present" :
+          emp.Status === "Work Over" ? "status-work-over" :
+          "status-not-present";
+        
+        row.innerHTML = `
+          <td>${emp.Name || 'N/A'}</td>
+          <td>${emp.Email || 'N/A'}</td>
+          <td><span class="status-badge ${statusClass}">${emp.Status || 'Not Present'}</span></td>
+        `;
+        
+        tbody.appendChild(row);
+      });
+
+      console.log("✅ Employee table updated with", employees.length, "records");
+    }
+
+    function showSuccess(message) {
+      const errorDiv = document.getElementById("errorMessage");
+      errorDiv.style.display = "block";
+      errorDiv.style.background = "#d4edda";
+      errorDiv.style.color = "#155724";
+      errorDiv.innerText = message;
+      
+      setTimeout(() => {
+        errorDiv.style.display = "none";
+      }, 3000);
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById("errorMessage");
+      errorDiv.style.display = "block";
+      errorDiv.style.background = "#f8d7da";
+      errorDiv.style.color = "#721c24";
+      errorDiv.innerText = message;
+      
+      setTimeout(() => {
+        errorDiv.style.display = "none";
+      }, 5000);
+    }
+  </script>
 </body>
 </html>
