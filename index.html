@@ -11,80 +11,115 @@
     }
 
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #f3f6fa;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      min-height: 100vh;
     }
 
     .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 25px;
-      background: #ffffff;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      border-radius: 10px;
+      display: flex;
+      height: 100vh;
+      gap: 0;
+    }
+
+    .left-section {
+      width: 30%;
+      background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+      padding: 40px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    }
+
+    .right-section {
+      width: 70%;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      overflow-y: auto;
     }
 
     h2 {
-      color: #252423;
+      color: #e8eef2;
       font-size: 22px;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
       text-align: center;
+      text-shadow: none;
+      font-weight: 400;
+      letter-spacing: 0.5px;
     }
 
     h2 span {
-      color: #6264A7;
+      color: #ffffff;
       font-weight: 600;
+      display: block;
+      margin-top: 8px;
+      font-size: 26px;
+      letter-spacing: 0.3px;
     }
 
     .status-box {
-      background: #eef3ff;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
       text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
     .status-box p {
-      margin: 8px 0;
-      color: #252423;
+      margin: 12px 0;
+      color: #e8eef2;
       font-size: 15px;
+      font-weight: 400;
+      letter-spacing: 0.3px;
     }
 
     .status-box span {
       font-weight: 600;
-      color: #6264A7;
+      color: #fff;
+      font-size: 18px;
+      text-shadow: none;
     }
 
     button {
       width: 100%;
-      padding: 14px;
+      padding: 16px;
       margin-bottom: 20px;
-      background: #6264A7;
-      color: #fff;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: #1a1a2e;
       font-size: 16px;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       font-weight: 600;
-      transition: all 0.3s;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
     }
 
     button:hover {
-      background: #464775;
       transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
     }
 
     button:disabled {
-      background: #ccc;
+      background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
       cursor: not-allowed;
       transform: none;
+      box-shadow: none;
+      color: #ecf0f1;
     }
 
     .table-container {
-      overflow-x: auto;
-      margin-top: 20px;
+      overflow-y: auto;
+      max-height: calc(100vh - 180px);
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 
     table {
@@ -94,105 +129,159 @@
     }
 
     th {
-      background: #6264A7;
-      color: white;
-      padding: 12px;
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      color: #ecf0f1;
+      padding: 16px;
       text-align: left;
       font-weight: 600;
-      font-size: 14px;
+      font-size: 13px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     td {
-      padding: 12px;
-      border-bottom: 1px solid #e1e1e1;
+      padding: 16px;
+      border-bottom: 1px solid #e8e8e8;
       font-size: 14px;
-      color: #252423;
+      color: #2c3e50;
+      font-weight: 400;
     }
 
     tr:hover {
-      background: #f9f9f9;
+      background: linear-gradient(90deg, rgba(44, 62, 80, 0.03) 0%, rgba(52, 73, 94, 0.03) 100%);
     }
 
     .status-badge {
       display: inline-block;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 11px;
       font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
     }
 
     .status-present {
-      background: #e6f7e6;
-      color: #0d7a0d;
+      background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+      color: white;
     }
 
     .status-work-over {
-      background: #fff3cd;
-      color: #856404;
+      background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+      color: #1a1a2e;
     }
 
     .status-not-present {
-      background: #f8d7da;
-      color: #721c24;
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      color: white;
     }
 
     .loading {
       text-align: center;
-      padding: 20px;
-      color: #6264A7;
+      padding: 40px;
+      color: #7f8c8d;
       font-style: italic;
+      font-size: 14px;
+      font-weight: 400;
     }
 
     .error {
-      background: #f8d7da;
-      color: #721c24;
-      padding: 12px;
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      color: white;
+      padding: 14px;
       border-radius: 8px;
       margin-bottom: 20px;
       text-align: center;
+      font-weight: 500;
+      box-shadow: 0 4px 15px rgba(231, 76, 60, 0.25);
+      letter-spacing: 0.3px;
     }
 
     h3 {
-      color: #252423;
-      font-size: 18px;
-      margin-top: 30px;
-      margin-bottom: 15px;
-      border-bottom: 2px solid #6264A7;
-      padding-bottom: 8px;
+      color: #2c3e50;
+      font-size: 20px;
+      margin-top: 0;
+      margin-bottom: 25px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #ecf0f1;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* Scrollbar styling */
+    .table-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .table-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .table-container::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      border-radius: 10px;
+    }
+
+    .table-container::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      
+      .left-section, .right-section {
+        width: 100%;
+      }
+      
+      .left-section {
+        padding: 30px 20px;
+      }
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h2>Welcome, <span id="userEmail">Loading...</span></h2>
+    <!-- Left Section: Registration/Punch -->
+    <div class="left-section">
+      <h2>Welcome,<span id="userEmail">Loading...</span></h2>
 
-    <div class="status-box">
-      <p>Status: <span id="status">Not Started</span></p>
-      <p>Time: <span id="time">--:--:--</span></p>
+      <div class="status-box">
+        <p>Status: <span id="status">Not Started</span></p>
+        <p>Time: <span id="time">--:--:--</span></p>
+      </div>
+
+      <button id="actionButton" onclick="togglePunch()">Start</button>
     </div>
 
-    <button id="actionButton" onclick="togglePunch()">Start</button>
+    <!-- Right Section: Employee List -->
+    <div class="right-section">
+      <div id="errorMessage" class="error" style="display: none;"></div>
 
-    <div id="errorMessage" class="error" style="display: none;"></div>
-
-    <h3>Employee Attendance Status</h3>
-    
-    <div class="table-container">
-      <table id="employeeTable">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="employeeTableBody">
-          <tr>
-            <td colspan="3" class="loading">Loading employee data...</td>
-          </tr>
-        </tbody>
-      </table>
+      <h3>Employee Attendance Status</h3>
+      
+      <div class="table-container">
+        <table id="employeeTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="employeeTableBody">
+            <tr>
+              <td colspan="3" class="loading">Loading employee data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
